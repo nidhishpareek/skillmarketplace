@@ -1,0 +1,146 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum Role {
+    USER
+    PROVIDER
+}
+
+enum ProviderType {
+    INDIVIDUAL
+    COMPANY
+}
+
+enum Currency {
+    USD
+    AUD
+    SGD
+    INR
+}
+
+enum WorkNature {
+    ONLINE
+    ONSITE
+}
+
+enum OfferStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+}
+
+model Account {
+    id        String    @id @default(cuid())
+    email     String    @unique
+    password  String
+    role      Role
+    provider  Provider? @relation(fields: [id], references: [id], map: "Account_providerId_fkey")
+    user      User?     @relation(fields: [id], references: [id], map: "Account_userId_fkey")
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+}
+
+model Provider {
+    id                 String       @id
+    type               ProviderType
+    fullName           String? // Only for INDIVIDUAL
+    companyName        String? // Only for COMPANY
+    businessTaxNumber  String? // Only for COMPANY
+    representativeName String
+    phoneNumber        String
+    mobileNumber       String
+    email              String
+    address            Address?
+    skills             Skill[]
+    offers             Offer[]
+    acceptedTasks      Task[]       @relation("AcceptedTasks")
+    createdAt          DateTime     @default(now())
+    updatedAt          DateTime     @updatedAt
+    Account            Account[]
+}
+
+model User {
+    id           String    @id
+    fullName     String
+    mobileNumber String
+    email        String
+    address      Address?
+    tasks        Task[]
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+    Account      Account[]
+}
+
+model Address {
+    id         String    @id @default(cuid())
+    streetNo   String
+    streetName String
+    city       String
+    state      String
+    postcode   String
+    userId     String?   @unique
+    providerId String?   @unique
+    user       User?     @relation(fields: [userId], references: [id])
+    provider   Provider? @relation(fields: [providerId], references: [id])
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
+}
+
+model Skill {
+    id         String     @id @default(cuid())
+    category   String
+    experience String
+    nature     WorkNature
+    hourlyRate Float
+    providerId String
+    provider   Provider   @relation(fields: [providerId], references: [id])
+    createdAt  DateTime   @default(now())
+    updatedAt  DateTime   @updatedAt
+}
+
+model Task {
+    id            String        @id @default(cuid())
+    category      String
+    name          String
+    description   String
+    startDate     DateTime
+    expectedHours Int
+    hourlyRate    Float
+    currency      Currency
+    userId        String
+    user          User          @relation(fields: [userId], references: [id])
+    offers        Offer[]
+    acceptedBy    Provider?     @relation("AcceptedTasks", fields: [acceptedById], references: [id])
+    acceptedById  String?
+    progressLogs  ProgressLog[]
+    completed     Boolean       @default(false)
+    taskAccepted  Boolean       @default(false)
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
+}
+
+model Offer {
+    id         String      @id @default(cuid())
+    provider   Provider    @relation(fields: [providerId], references: [id])
+    providerId String
+    task       Task        @relation(fields: [taskId], references: [id])
+    taskId     String
+    status     OfferStatus @default(PENDING)
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+}
+
+model ProgressLog {
+    id        String   @id @default(cuid())
+    task      Task     @relation(fields: [taskId], references: [id])
+    taskId    String
+    log       String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
