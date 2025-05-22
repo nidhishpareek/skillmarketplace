@@ -18,13 +18,18 @@
   "packageManager": "pnpm@10.10.0",
   "dependencies": {
     "@prisma/client": "^6.8.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/yup": "^0.32.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
-    "postgraphile": "^4.14.1"
+    "postgraphile": "^4.14.1",
+    "winston": "^3.17.0",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.5",

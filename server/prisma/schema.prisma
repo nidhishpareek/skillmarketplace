@@ -12,7 +12,7 @@ enum Role {
     PROVIDER
 }
 
-enum ProviderType {
+enum Type {
     INDIVIDUAL
     COMPANY
 }
@@ -35,61 +35,41 @@ enum OfferStatus {
     REJECTED
 }
 
-model Account {
-    id        String    @id @default(cuid())
-    email     String    @unique
-    password  String
-    role      Role
-    provider  Provider? @relation(fields: [id], references: [id], map: "Account_providerId_fkey")
-    user      User?     @relation(fields: [id], references: [id], map: "Account_userId_fkey")
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-}
-
-model Provider {
-    id                 String       @id
-    type               ProviderType
-    fullName           String? // Only for INDIVIDUAL
-    companyName        String? // Only for COMPANY
-    businessTaxNumber  String? // Only for COMPANY
-    representativeName String
-    phoneNumber        String
-    mobileNumber       String
-    email              String
-    address            Address?
-    skills             Skill[]
-    offers             Offer[]
-    acceptedTasks      Task[]       @relation("AcceptedTasks")
-    createdAt          DateTime     @default(now())
-    updatedAt          DateTime     @updatedAt
-    Account            Account[]
-}
-
-model User {
-    id           String    @id
-    fullName     String
-    mobileNumber String
-    email        String
+model Profile {
+    id           String   @id @default(cuid())
+    role         Role
+    type         Type?
+    firstName    String?
+    lastName     String?
+    mobileNumber String   @unique
+    email        String   @unique
+    password     String
     address      Address?
-    tasks        Task[]
-    createdAt    DateTime  @default(now())
-    updatedAt    DateTime  @updatedAt
-    Account      Account[]
+
+    companyName       String?
+    businessTaxNumber String? // 10-character capital letters/digits
+
+    skills        Skill[] // For providers
+    tasks         Task[] // For users
+    offers        Offer[] // For providers
+    acceptedTasks Task[]         @relation("AcceptedTasks")
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+    ProgressLogs  ProgressLogs[]
+    Logs          Logs[]
 }
 
 model Address {
-    id         String    @id @default(cuid())
-    streetNo   String
-    streetName String
-    city       String
-    state      String
-    postcode   String
-    userId     String?   @unique
-    providerId String?   @unique
-    user       User?     @relation(fields: [userId], references: [id])
-    provider   Provider? @relation(fields: [providerId], references: [id])
-    createdAt  DateTime  @default(now())
-    updatedAt  DateTime  @updatedAt
+    id           String   @id @default(cuid())
+    streetNumber String
+    streetName   String
+    city         String
+    state        String
+    postcode     String
+    profile      Profile  @relation(fields: [profileId], references: [id])
+    profileId    String   @unique
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
 }
 
 model Skill {
@@ -98,14 +78,15 @@ model Skill {
     experience String
     nature     WorkNature
     hourlyRate Float
-    providerId String
-    provider   Provider   @relation(fields: [providerId], references: [id])
+    profile    Profile    @relation(fields: [profileId], references: [id])
+    profileId  String
     createdAt  DateTime   @default(now())
     updatedAt  DateTime   @updatedAt
 }
 
 model Task {
-    id            String        @id @default(cuid())
+    id String @id @default(cuid())
+
     category      String
     name          String
     description   String
@@ -113,34 +94,67 @@ model Task {
     expectedHours Int
     hourlyRate    Float
     currency      Currency
+    user          Profile        @relation(fields: [userId], references: [id])
     userId        String
-    user          User          @relation(fields: [userId], references: [id])
     offers        Offer[]
-    acceptedBy    Provider?     @relation("AcceptedTasks", fields: [acceptedById], references: [id])
+    acceptedBy    Profile?       @relation("AcceptedTasks", fields: [acceptedById], references: [id])
     acceptedById  String?
-    progressLogs  ProgressLog[]
-    completed     Boolean       @default(false)
-    taskAccepted  Boolean       @default(false)
-    createdAt     DateTime      @default(now())
-    updatedAt     DateTime      @updatedAt
+    ProgressLogs  ProgressLogs[]
+    isCompleted   Boolean        @default(false)
+    taskAccepted  Boolean        @default(false)
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
 }
 
 model Offer {
     id         String      @id @default(cuid())
-    provider   Provider    @relation(fields: [providerId], references: [id])
+    provider   Profile     @relation(fields: [providerId], references: [id])
     providerId String
     task       Task        @relation(fields: [taskId], references: [id])
     taskId     String
     status     OfferStatus @default(PENDING)
-    createdAt  DateTime    @default(now())
-    updatedAt  DateTime    @updatedAt
-}
 
-model ProgressLog {
-    id        String   @id @default(cuid())
-    task      Task     @relation(fields: [taskId], references: [id])
-    taskId    String
-    log       String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+enum ProgressSubType {
+    TASK_STARTED
+    TASK_PAUSED
+    TASK_RESUMED
+    TASK_STOPPED
+}
+
+model ProgressLogs {
+    id     String @id @default(cuid())
+    task   Task   @relation(fields: [taskId], references: [id])
+    taskId String
+
+    profile   Profile @relation(fields: [profileId], references: [id])
+    profileId String // for user activity summary
+
+    log   Logs   @relation(fields: [logId], references: [id])
+    logId String @unique // Each ProgressLogs must have a unique, required Log
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("ProgressLogs")
+}
+
+model Logs {
+    id          String @id @default(cuid())
+    description String
+    // mediaUrl String? //for future extension
+
+    profile   Profile? @relation(fields: [profileId], references: [id])
+    profileId String? // for user activity summary
+
+    ProgressLogs   ProgressLogs?
+    progressLogsId String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("Logs")
 }

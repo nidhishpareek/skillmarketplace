@@ -1,16 +1,21 @@
 import "dotenv/config";
 import express from "express";
 import { applyMiddleware } from "./middleware";
+import routes from "./routes";
+import { ENV } from "./config/constants";
 
 const app = express();
 applyMiddleware(app);
 
-const port = process.env.PORT || 3000;
+app.use("/", routes);
 
-app.get("/", (req, res) => {
-  res.send("Server is healthy!");
+app.listen(ENV.PORT, () => {
+  console.log(`Server is running at http://localhost:${ENV.PORT}`);
 });
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+app.use((req, res) => {
+  res.status(404).json({
+    error: "endpoint not found",
+    path: req.originalUrl,
+  });
 });
