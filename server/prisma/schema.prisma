@@ -78,10 +78,12 @@ model Skill {
     experience String
     nature     WorkNature
     hourlyRate Float
-    profile    Profile    @relation(fields: [profileId], references: [id])
-    profileId  String
-    createdAt  DateTime   @default(now())
-    updatedAt  DateTime   @updatedAt
+
+    profile   Profile @relation(fields: [profileId], references: [id])
+    profileId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model Task {

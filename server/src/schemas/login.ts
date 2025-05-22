@@ -1,8 +1,8 @@
-import * as yup from "yup";
+import { object, string, type InferType } from "yup";
 
-export const loginSchema = yup.object({
-  userIdentity: yup.string().email().required("User identity is required"),
-  password: yup.string().required("Password is required"),
+export const loginSchema = object({
+  userIdentity: string().email().required("User identity is required"),
+  password: string().required("Password is required"),
 });
 
-export type LoginInput = yup.InferType<typeof loginSchema>;
+export type LoginInput = InferType<typeof loginSchema>;
