@@ -43,6 +43,7 @@ router.put(
   validateBody(createTaskSchema),
   async (req: AuthenticatedRequest, res) => {
     const { id } = req.params;
+    //TODO: Add partial validation instead of entire create validation
     const { category, name, description } = req.body as CreateTaskInput;
     const user = req.user;
 

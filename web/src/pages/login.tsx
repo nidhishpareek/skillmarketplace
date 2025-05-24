@@ -1,17 +1,16 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+import { InferType } from "yup";
 import { TextField, Button, Box, Typography, Link } from "@mui/material";
-import { handleLogin } from "../utils/auth";
 import { useRouter } from "next/router";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const loginSchema = yup.object().shape({
-  userID: yup.string().required("UserID is required"),
-  password: yup.string().required("Password is required"),
-});
+import { handleLogin, loginSchema } from "../utils/auth";
+import { GetServerSideProps } from "next";
+import { getCookie } from "cookies-next/server";
+import { isValidToken } from "@/utils/tokenValidity";
 
 const LoginPage = () => {
   const { control, handleSubmit } = useForm({
@@ -19,8 +18,11 @@ const LoginPage = () => {
   });
   const router = useRouter();
 
-  const onSubmit = async (data: { userID: string; password: string }) => {
-    const success = await handleLogin(data);
+  const onSubmit = async (data: InferType<typeof loginSchema>) => {
+    const success = await handleLogin({
+      userIdentity: data.userIdentity, // Map userIdentity to userID for compatibility
+      password: data.password,
+    });
     if (success) {
       router.push("/");
     } else {
@@ -43,13 +45,13 @@ const LoginPage = () => {
         </Typography>
         <Box component="form" onSubmit={handleSubmit(onSubmit)} width="300px">
           <Controller
-            name="userID"
+            name="userIdentity"
             control={control}
             defaultValue=""
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
-                label="UserID"
+                label="User Identity"
                 variant="outlined"
                 fullWidth
                 margin="normal"
@@ -91,3 +93,20 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const authToken = await getCookie("authToken", context);
+  const isTokenValid = await isValidToken(context.req, authToken);
+
+  if (isTokenValid) {
+    // If the token is valid, redirect to the home page or callback URL
+    const callbackUrl = context.query.callbackUrl || "/";
+    return {
+      redirect: {
+        destination: callbackUrl as string,
+        permanent: false,
+      },
+    };
+  }
+  return { props: {} };
+};

@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
+import { sendServerRequest } from "@/utils/serverRequest";
 import { ENV } from "@/constants/env";
 
 type Data = {
@@ -17,7 +17,6 @@ export default async function handler(
 ) {
   const apiKey = ENV.API_KEY;
   const backendUrl = ENV.BACKEND_URL;
-  debugger;
   if (!apiKey || !backendUrl) {
     res.status(500).json({ error: "API_KEY or BACKEND_URL is not configured" });
     return;
@@ -26,16 +25,16 @@ export default async function handler(
   const { requestEndpoint, ...query } = req.query;
   console.log("Request URL:", backend, "requestEndpoint:", requestEndpoint);
   try {
-    const response = await axios({
-      method: req.method,
-      url: backend,
-      headers: {
-        ...req.headers,
-        "api-key": apiKey,
+    const response = await sendServerRequest(
+      req.url?.replace("/api/send", "") || "",
+      {
+        method: req.method,
+        headers: req.headers,
+        data: req.body,
+        params: query,
       },
-      data: req.body,
-      params: query,
-    });
+      req
+    );
 
     res.status(response.status).json(response.data);
   } catch (error: any) {

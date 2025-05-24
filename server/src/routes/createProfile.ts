@@ -3,7 +3,7 @@ import { prisma } from "../libs/prisma";
 import {
   createProfileSchema,
   ProviderProfileInput,
-} from "../schemas/providerProfile";
+} from "../schemas/createProfile";
 import { validateBody } from "../middleware/validateBody";
 
 const router = Router();
@@ -11,6 +11,23 @@ const router = Router();
 router.post("/", validateBody(createProfileSchema), async (req, res) => {
   const body = req.body as ProviderProfileInput;
   try {
+    // Check if email or mobile number already exists in the database
+    const existingProfile = await prisma.profile.findFirst({
+      where: {
+        OR: [
+          { email: body.email },
+          { mobileNumber: body.mobileNumber },
+        ],
+      },
+    });
+
+    if (existingProfile) {
+      res.status(400).json({
+        error: "An account with this email or mobile number already exists.",
+      });
+      return; // Ensure the function exits after sending the response
+    }
+
     const profile = await prisma.profile.create({
       data: {
         role: body.role,
