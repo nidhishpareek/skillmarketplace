@@ -18,7 +18,7 @@ router.post("/", validateBody(loginSchema), async (req, res) => {
     });
 
     if (!user) {
-      res.status(400).json({ error: "Invalid email or password" });
+      res.status(400).json({ error: "Invalid user ID or password" });
       return;
     }
     const token = createJWT({

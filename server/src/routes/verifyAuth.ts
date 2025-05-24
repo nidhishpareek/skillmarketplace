@@ -1,8 +1,10 @@
 import { Router } from "express";
+import { AuthenticatedRequest, requireAuth } from "../middleware/requireAuth";
+
 const router = Router();
 
 // Route to verify JWT token
-router.get("/verify", async (req, res) => {
+router.get("/", async (req: AuthenticatedRequest, res) => {
   try {
     //auth check is happening in requireAuth middleware, so returning the user object directly
     res.json({ valid: true, user: req.user });

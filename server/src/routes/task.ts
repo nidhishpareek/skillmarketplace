@@ -5,14 +5,14 @@ import { validateBody } from "../middleware/validateBody";
 import { createTaskSchema, CreateTaskInput } from "../schemas/task";
 import { createOfferSchema, CreateOfferInput } from "../schemas/offer";
 import { Role } from "@prisma/client";
+import { AuthenticatedRequest } from "../middleware/requireAuth";
 
 const router = Router();
 
 router.post(
   "/",
-  requireAuth,
   validateBody(createTaskSchema),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     const { category, name, description } = req.body as CreateTaskInput;
     const user = req.user;
 
@@ -41,7 +41,7 @@ router.put(
   "/:id",
   requireAuth,
   validateBody(createTaskSchema),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     const { id } = req.params;
     const { category, name, description } = req.body as CreateTaskInput;
     const user = req.user;
@@ -76,7 +76,7 @@ router.put(
   }
 );
 
-router.delete("/:id", requireAuth, async (req, res) => {
+router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const user = req.user;
 
@@ -107,7 +107,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { page = 1, pageSize = 10 } = req.query;
   const user = req.user;
 
@@ -139,7 +139,7 @@ router.post(
   "/:taskId/offer",
   requireAuth,
   validateBody(createOfferSchema),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     const { taskId } = req.params;
     const { hourlyRate, startDate, expectedHours, currency } =
       req.body as CreateOfferInput;
@@ -169,43 +169,48 @@ router.post(
   }
 );
 
-router.post("/:taskId/offer/:offerId/accept", requireAuth, async (req, res) => {
-  const { taskId, offerId } = req.params;
-  const user = req.user;
+router.post(
+  "/:taskId/offer/:offerId/accept",
+  requireAuth,
+  async (req: AuthenticatedRequest, res) => {
+    const { taskId, offerId } = req.params;
+    const user = req.user;
 
-  if (!user?.profileId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
-  try {
-    // Check if the task belongs to the user
-    const task = await prisma.task.findUnique({
-      where: { id: taskId, userId: user.profileId },
-    });
-
-    if (!task) {
-      res.status(403).json({
-        error: "Task not found or you are not authorized to accept this offer",
-      });
+    if (!user?.profileId) {
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
-    // Accept the offer
-    const acceptedTask = await prisma.task.update({
-      where: { id: taskId },
-      data: {
-        acceptedOfferId: offerId,
-        taskAccepted: true,
-      },
-    });
+    try {
+      // Check if the task belongs to the user
+      const task = await prisma.task.findUnique({
+        where: { id: taskId, userId: user.profileId },
+      });
 
-    res
-      .status(200)
-      .json({ message: "Offer accepted successfully", acceptedTask });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
+      if (!task) {
+        res.status(403).json({
+          error:
+            "Task not found or you are not authorized to accept this offer",
+        });
+        return;
+      }
+
+      // Accept the offer
+      const acceptedTask = await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          acceptedOfferId: offerId,
+          taskAccepted: true,
+        },
+      });
+
+      res
+        .status(200)
+        .json({ message: "Offer accepted successfully", acceptedTask });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
   }
-});
+);
 
 export default router;

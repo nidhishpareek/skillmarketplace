@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { prisma } from "../../libs/prisma";
+import { prisma } from "../libs/prisma";
 import {
   createProfileSchema,
   ProviderProfileInput,
-} from "../../schemas/providerProfile";
-import { validateBody } from "../../middleware/validateBody";
+} from "../schemas/providerProfile";
+import { validateBody } from "../middleware/validateBody";
 
 const router = Router();
 

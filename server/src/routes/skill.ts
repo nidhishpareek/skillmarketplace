@@ -1,16 +1,14 @@
-import { Router } from "express";
+import { Request, Router } from "express";
 import { prisma } from "../libs/prisma";
-import { requireAuth } from "../middleware/requireAuth";
+import { AuthenticatedRequest, requireAuth } from "../middleware/requireAuth";
 import { validateBody } from "../middleware/validateBody";
 import { createSkillSchema, CreateSkillInput } from "../schemas/skill";
 
 const router = Router();
-
 router.post(
   "/",
-  requireAuth,
   validateBody(createSkillSchema),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     const { category, experience, nature, hourlyRate } =
       req.body as CreateSkillInput;
 
@@ -38,7 +36,7 @@ router.post(
   }
 );
 
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { page = 1, pageSize = 10 } = req.query;
   const user = req.user;
 

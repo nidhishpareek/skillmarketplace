@@ -1,7 +1,19 @@
-import { Request, Response, NextFunction } from "express";
+import { Request as ExpressRequest, Response, NextFunction } from "express";
 import { verifyJWT } from "../utils/auth/jwt";
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
+export type AuthenticatedRequest = ExpressRequest & {
+  user?: {
+    profileId: string;
+    role: string;
+    type: string;
+  };
+};
+
+export function requireAuth(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ error: "Authorization token missing or invalid" });
