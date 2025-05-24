@@ -35,6 +35,12 @@ enum OfferStatus {
     REJECTED
 }
 
+enum TaskCategory {
+    DESIGN
+    DEVELOPMENT
+    MARKETING
+}
+
 model Profile {
     id           String   @id @default(cuid())
     role         Role
@@ -60,16 +66,18 @@ model Profile {
 }
 
 model Address {
-    id           String   @id @default(cuid())
+    id           String @id @default(cuid())
     streetNumber String
     streetName   String
     city         String
     state        String
     postcode     String
-    profile      Profile  @relation(fields: [profileId], references: [id])
-    profileId    String   @unique
-    createdAt    DateTime @default(now())
-    updatedAt    DateTime @updatedAt
+    profileId    String @unique
+
+    profile Profile @relation(fields: [profileId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model Skill {
@@ -78,9 +86,9 @@ model Skill {
     experience String
     nature     WorkNature
     hourlyRate Float
+    profileId  String
 
-    profile   Profile @relation(fields: [profileId], references: [id])
-    profileId String
+    profile Profile @relation(fields: [profileId], references: [id])
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -89,32 +97,38 @@ model Skill {
 model Task {
     id String @id @default(cuid())
 
-    category      String
-    name          String
-    description   String
-    startDate     DateTime
-    expectedHours Int
-    hourlyRate    Float
-    currency      Currency
+    category        TaskCategory
+    name            String
+    description     String
+    isCompleted     Boolean      @default(false)
+    taskAccepted    Boolean      @default(false)
+    acceptedOfferId String?      @unique
+    userId          String
+    acceptedById    String?
+
     user          Profile        @relation(fields: [userId], references: [id])
-    userId        String
     offers        Offer[]
     acceptedBy    Profile?       @relation("AcceptedTasks", fields: [acceptedById], references: [id])
-    acceptedById  String?
     ProgressLogs  ProgressLogs[]
-    isCompleted   Boolean        @default(false)
-    taskAccepted  Boolean        @default(false)
-    createdAt     DateTime       @default(now())
-    updatedAt     DateTime       @updatedAt
+    acceptedOffer Offer?         @relation("AcceptedOffer", fields: [acceptedOfferId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model Offer {
-    id         String      @id @default(cuid())
-    provider   Profile     @relation(fields: [providerId], references: [id])
-    providerId String
-    task       Task        @relation(fields: [taskId], references: [id])
-    taskId     String
-    status     OfferStatus @default(PENDING)
+    id            String      @id @default(cuid())
+    status        OfferStatus @default(PENDING)
+    hourlyRate    Float
+    startDate     DateTime
+    expectedHours Int
+    currency      Currency
+    providerId    String
+    taskId        String
+
+    provider        Profile @relation(fields: [providerId], references: [id])
+    task            Task    @relation(fields: [taskId], references: [id])
+    acceptedForTask Task?   @relation("AcceptedOffer")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -128,15 +142,14 @@ enum ProgressSubType {
 }
 
 model ProgressLogs {
-    id     String @id @default(cuid())
-    task   Task   @relation(fields: [taskId], references: [id])
-    taskId String
-
-    profile   Profile @relation(fields: [profileId], references: [id])
+    id        String @id @default(cuid())
+    task      Task   @relation(fields: [taskId], references: [id])
+    taskId    String
+    logId     String @unique // Each ProgressLogs must have a unique, required Log
     profileId String // for user activity summary
 
-    log   Logs   @relation(fields: [logId], references: [id])
-    logId String @unique // Each ProgressLogs must have a unique, required Log
+    profile Profile @relation(fields: [profileId], references: [id])
+    log     Logs    @relation(fields: [logId], references: [id])
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -145,15 +158,14 @@ model ProgressLogs {
 }
 
 model Logs {
-    id          String @id @default(cuid())
-    description String
+    id             String  @id @default(cuid())
+    description    String
+    profileId      String? // for user activity summary
+    progressLogsId String?
     // mediaUrl String? //for future extension
 
-    profile   Profile? @relation(fields: [profileId], references: [id])
-    profileId String? // for user activity summary
-
-    ProgressLogs   ProgressLogs?
-    progressLogsId String?
+    profile      Profile?      @relation(fields: [profileId], references: [id])
+    ProgressLogs ProgressLogs?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

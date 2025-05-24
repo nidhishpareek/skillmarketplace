@@ -1,8 +1,8 @@
 import { AnyObjectSchema } from "yup";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 
-export function validateBody(schema: AnyObjectSchema) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export function validateBody(schema: AnyObjectSchema): RequestHandler {
+  return async (req, res, next) => {
     try {
       req.body = await schema.validate(req.body, {
         abortEarly: false,

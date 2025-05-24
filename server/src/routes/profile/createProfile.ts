@@ -35,7 +35,8 @@ router.post("/", validateBody(createProfileSchema), async (req, res) => {
       include: { address: true },
     });
 
-    return res.status(201).json(profile);
+    res.status(201).json(profile);
+    return;
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

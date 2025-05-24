@@ -1,8 +1,9 @@
 import { Router } from "express";
 import createProfileRouter from "./profile/createProfile";
-import loginRouter from "./profile/login";
-const skillRouter = require("./profile/skill");
-const taskRouter = require("./profile/task");
+import loginRouter from "./login";
+import skillRouter from "./skill";
+import taskRouter from "./task";
+import verifyAuth from "./verifyAuth";
 
 const router = Router();
 
@@ -15,5 +16,5 @@ router.use("/profile", createProfileRouter);
 router.use("/login", loginRouter);
 router.use("/skill", skillRouter);
 router.use("/task", taskRouter);
-
+router.use("/verify", verifyAuth);
 export default router;

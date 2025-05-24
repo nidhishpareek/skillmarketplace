@@ -4,9 +4,8 @@ import { verifyJWT } from "../utils/auth/jwt";
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res
-      .status(401)
-      .json({ error: "Authorization token missing or invalid" });
+    res.status(401).json({ error: "Authorization token missing or invalid" });
+    return;
   }
   const token = authHeader.replace("Bearer ", "");
   const payload = verifyJWT(token);
@@ -15,7 +14,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     typeof payload !== "object" ||
     !("id" in payload && "role" in payload && "type" in payload)
   ) {
-    return res.status(401).json({ error: "Invalid or expired token" });
+    res.status(401).json({ error: "Invalid or expired token" });
+    return;
   }
   // Attach user info to request
   req.user = {
