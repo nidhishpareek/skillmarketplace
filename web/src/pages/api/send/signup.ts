@@ -31,7 +31,18 @@ export const signupSchema = yup.object().shape({
     streetName: yup.string().required("Street name is required"),
     city: yup.string().required("City is required"),
     state: yup.string().required("State is required"),
-    postcode: yup.string().required("Postcode is required"),
+    postcode: yup
+      .string()
+      .matches(/^[0-9]+$/, "Postcode must be a number")
+      .test(
+        "is-valid-postcode",
+        "Postcode must be between 0200 and 9729",
+        (value) => {
+          const num = Number(value);
+          return num >= 200 && num <= 9729;
+        }
+      )
+      .required("Postcode is required"),
   }),
   companyName: yup.string().when("type", {
     is: "COMPANY",

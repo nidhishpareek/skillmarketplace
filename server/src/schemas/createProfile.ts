@@ -25,7 +25,17 @@ export const createProfileSchema = object({
     streetName: string().required("Street name is required"),
     city: string().required("City/Suburb is required"),
     state: string().required("State is required"),
-    postcode: string().required("Post code is required"),
+    postcode: string()
+      .matches(/^[0-9]+$/, "Postcode must be a number")
+      .test(
+        "is-valid-postcode",
+        "Postcode must be between 0200 and 9729",
+        (value) => {
+          const num = Number(value);
+          return num >= 200 && num <= 9729;
+        }
+      )
+      .required("Postcode is required"),
   }).when("type", {
     is: Type.INDIVIDUAL, // Only required for individuals
     then: (schema) => schema.required("Address is required for individuals"),

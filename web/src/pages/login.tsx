@@ -4,10 +4,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { InferType } from "yup";
 import { TextField, Button, Box, Typography, Link } from "@mui/material";
 import { useRouter } from "next/router";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
-import { handleLogin, loginSchema } from "../utils/auth";
+import { handleLogin, loginSchema } from "../apiCalls/auth";
 import { GetServerSideProps } from "next";
 import { getCookie } from "cookies-next/server";
 import { isValidToken } from "@/utils/tokenValidity";
@@ -32,7 +31,6 @@ const LoginPage = () => {
 
   return (
     <>
-      <ToastContainer />
       <Box
         display="flex"
         flexDirection="column"

@@ -7,20 +7,26 @@ export const isValidToken = async (
   req: NextApiRequest | IncomingMessage,
   authToken?: String
 ) => {
-  if (!authToken) throw new Error("No auth token found");
+  try {
+    if (!authToken) throw new Error("No auth token found");
 
-  // Verify the token using sendServerRequest
-  const verifyData = await sendServerRequest(
-    "/verify",
-    {
-      method: "GET",
-      headers: { Authorization: `Bearer ${authToken}` },
-    },
-    req
-  );
+    // Verify the token using sendServerRequest
+    const verifyData = await sendServerRequest(
+      "/verify",
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+      req
+    );
 
-  if (!verifyData.data.isValid) throw new Error("Invalid token");
-  return null;
+    if (!verifyData.data.isValid) throw new Error("Invalid token");
+
+    return verifyData.data.isValid;
+  } catch (error) {
+    console.error("Token validation error:", error);
+    return false;
+  }
 };
 
 export const validateTokenAndRedirectLogin = async (
