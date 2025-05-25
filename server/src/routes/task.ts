@@ -108,6 +108,20 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
+const providerPropertiesIncluded = {
+  provider: {
+    select: {
+      firstName: true,
+      lastName: true,
+      email: true,
+      mobileNumber: true,
+      companyName: true,
+      businessTaxNumber: true,
+      skills: true,
+    },
+  },
+};
+
 router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { page = 1, pageSize = 10 } = req.query;
   const user = req.user;
@@ -126,7 +140,19 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
       skip: offset,
       take: limit,
       include: {
-        offers: user.role === Role.USER,
+        progressLogs: {
+          include: {
+            log: true,
+          },
+        },
+        acceptedOffer: {
+          include: { ...providerPropertiesIncluded },
+        },
+        offers: {
+          include: {
+            ...providerPropertiesIncluded,
+          },
+        },
       },
     });
 

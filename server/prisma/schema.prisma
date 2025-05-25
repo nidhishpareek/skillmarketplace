@@ -61,8 +61,8 @@ model Profile {
     acceptedTasks Task[]         @relation("AcceptedTasks")
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
-    ProgressLogs  ProgressLogs[]
-    Logs          Logs[]
+    progressLogs  ProgressLogs[]
+    logs          Logs[]
 }
 
 model Address {
@@ -87,6 +87,7 @@ model Skill {
     nature     WorkNature
     hourlyRate Float
     profileId  String
+    currency   Currency
 
     profile Profile @relation(fields: [profileId], references: [id])
 
@@ -109,7 +110,7 @@ model Task {
     user          Profile        @relation(fields: [userId], references: [id])
     offers        Offer[]
     acceptedBy    Profile?       @relation("AcceptedTasks", fields: [acceptedById], references: [id])
-    ProgressLogs  ProgressLogs[]
+    progressLogs  ProgressLogs[]
     acceptedOffer Offer?         @relation("AcceptedOffer", fields: [acceptedOfferId], references: [id])
 
     createdAt DateTime @default(now())

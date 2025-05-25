@@ -9,7 +9,7 @@ router.post(
   "/",
   validateBody(createSkillSchema),
   async (req: AuthenticatedRequest, res) => {
-    const { category, experience, nature, hourlyRate } =
+    const { id, category, experience, nature, hourlyRate, currency } =
       req.body as CreateSkillInput;
 
     const user = req.user;
@@ -20,11 +20,20 @@ router.post(
     }
 
     try {
-      const skill = await prisma.skill.create({
-        data: {
+      const skill = await prisma.skill.upsert({
+        where: { id: id || "" }, // Use empty string if id is null
+        update: {
           category,
           experience,
           nature,
+          currency,
+          hourlyRate,
+        },
+        create: {
+          category,
+          experience,
+          nature,
+          currency,
           hourlyRate,
           profileId: user.profileId,
         },
@@ -58,6 +67,34 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
     });
 
     res.status(200).json(skills);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const { id } = req.params;
+  const user = req.user;
+
+  if (!user?.profileId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  try {
+    const deletedSkill = await prisma.skill.deleteMany({
+      where: {
+        id: id,
+        profileId: user.profileId,
+      },
+    });
+
+    if (deletedSkill.count === 0) {
+      res.status(404).json({ error: "Skill not found or unauthorized" });
+      return;
+    }
+
+    res.status(200).json({ message: "Skill deleted successfully" });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
