@@ -26,7 +26,7 @@ export const sendServerRequest = async (
   }
 
   const url = `${backendUrl}${endpoint}`;
-  const authToken = getCookie("authToken", { req });
+  const authToken = await getCookie("authToken", { req });
   const headers = {
     ...config.headers,
     "api-key": apiKey,

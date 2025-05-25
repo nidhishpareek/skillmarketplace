@@ -27,10 +27,14 @@ import {
   TYPE_OPTIONS,
   ROLE_OPTIONS,
 } from "./api/send/signup";
+import { useSearchParams } from "next/navigation";
 
 const SignupPage = () => {
   const [step, setStep] = useState(1);
   const router = useRouter();
+  const params = useSearchParams();
+  const appendQuery = params ? `?${params}` : "";
+
   const { control, handleSubmit, watch, trigger } = useForm({
     resolver: yupResolver(signupSchema),
     defaultValues: {
@@ -57,7 +61,7 @@ const SignupPage = () => {
     const success = await handleSignup(data);
     if (success) {
       toast.success("Signup successful!");
-      const callbackUrl = router.query.callbackUrl || "/";
+      const callbackUrl = `/login${appendQuery}`;
       router.push(callbackUrl as string);
     } else {
       toast.error("Signup failed. Please try again.");
@@ -337,7 +341,10 @@ const SignupPage = () => {
             )}
             <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
               Already have an account?{" "}
-              <a href="/login" style={{ textDecoration: "none" }}>
+              <a
+                href={`/login${appendQuery}`}
+                style={{ textDecoration: "none" }}
+              >
                 Log in here
               </a>
             </Typography>

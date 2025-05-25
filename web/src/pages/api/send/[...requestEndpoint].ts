@@ -2,6 +2,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { sendServerRequest } from "@/utils/serverRequest";
 import { ENV } from "@/constants/env";
+import { parseQueryToStrings } from "@/utils/queryParser";
+import { setCookie } from "cookies-next/server";
 
 type Data = {
   name: string;
@@ -10,7 +12,27 @@ type Data = {
 type ErrorResponse = {
   error: string;
 };
-
+const postCallActions: Record<
+  string,
+  (
+    req: NextApiRequest,
+    res: NextApiResponse<Data | ErrorResponse>,
+    data: any
+  ) => Promise<void>
+> = {
+  login: async (req, res, data) => {
+    console.log("Post call action for /login executed");
+    if (data?.token)
+      setCookie("authToken", data?.token, {
+        req,
+        res,
+        maxAge: 60 * 60 * 24, // 1 day
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      });
+  },
+};
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data | ErrorResponse>
@@ -21,12 +43,12 @@ export default async function handler(
     res.status(500).json({ error: "API_KEY or BACKEND_URL is not configured" });
     return;
   }
-  const backend = `${backendUrl}${req.url?.replace("/api/send", "")}`;
   const { requestEndpoint, ...query } = req.query;
-  console.log("Request URL:", backend, "requestEndpoint:", requestEndpoint);
+  const { endpoint } = parseQueryToStrings({ endpoint: requestEndpoint });
+  console.log("requestEndpoint:", requestEndpoint);
   try {
     const response = await sendServerRequest(
-      req.url?.replace("/api/send", "") || "",
+      `/${endpoint}` || "",
       {
         method: req.method,
         headers: req.headers,
@@ -35,9 +57,13 @@ export default async function handler(
       },
       req
     );
-
+    if (postCallActions[endpoint]) {
+      const action = postCallActions[endpoint];
+      await action(req, res, response.data);
+    }
     res.status(response.status).json(response.data);
   } catch (error: any) {
+    console.log("Error in API handler:", error);
     res
       .status(error.response?.status || 500)
       .json(error.response?.data || { error: "An error occurred" });

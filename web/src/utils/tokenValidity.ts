@@ -15,14 +15,14 @@ export const isValidToken = async (
       "/verify",
       {
         method: "GET",
-        headers: { Authorization: `Bearer ${authToken}` },
+        headers: { Authorization: `${authToken}` },
       },
       req
     );
 
-    if (!verifyData.data.isValid) throw new Error("Invalid token");
+    if (!verifyData.data.valid) throw new Error("Invalid token");
 
-    return verifyData.data.isValid;
+    return verifyData.data.valid;
   } catch (error) {
     console.error("Token validation error:", error);
     return false;
@@ -35,9 +35,8 @@ export const validateTokenAndRedirectLogin = async (
   const { req, resolvedUrl } = context;
   const authToken = req.cookies?.authToken;
 
-  try {
-    await isValidToken(req, authToken);
-  } catch (error) {
+  const isValid = await isValidToken(req, authToken);
+  if (!isValid) {
     const callbackUrl = encodeURIComponent(resolvedUrl);
     return {
       redirect: {

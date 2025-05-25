@@ -10,20 +10,24 @@ import { handleLogin, loginSchema } from "../apiCalls/auth";
 import { GetServerSideProps } from "next";
 import { getCookie } from "cookies-next/server";
 import { isValidToken } from "@/utils/tokenValidity";
+import { parseQueryToStrings } from "@/utils/queryParser";
+import { useSearchParams } from "next/navigation";
 
 const LoginPage = () => {
   const { control, handleSubmit } = useForm({
     resolver: yupResolver(loginSchema),
   });
   const router = useRouter();
-
+  const params = useSearchParams();
+  const appendQuery = params ? `?${params}` : "";
   const onSubmit = async (data: InferType<typeof loginSchema>) => {
     const success = await handleLogin({
       userIdentity: data.userIdentity, // Map userIdentity to userID for compatibility
       password: data.password,
     });
+    const { callbackUrl } = parseQueryToStrings(router.query);
     if (success) {
-      router.push("/");
+      router.push(decodeURIComponent(callbackUrl));
     } else {
       toast.error("Login failed. Please check your credentials.");
     }
@@ -81,7 +85,7 @@ const LoginPage = () => {
         </Box>
         <Typography variant="body2" marginTop={2}>
           Don&apos;t have an account?{" "}
-          <Link href="/signup" underline="hover">
+          <Link href={`/signup${appendQuery}`} underline="hover">
             Sign up
           </Link>
         </Typography>
