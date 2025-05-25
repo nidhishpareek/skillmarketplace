@@ -18,7 +18,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/router";
 import { GetServerSideProps } from "next";
 import { getCookie } from "cookies-next/server";
-import { isValidToken } from "@/utils/tokenValidity";
+import { decodeToken } from "@/utils/tokenValidity";
 import { parseQueryToStrings } from "@/utils/queryParser";
 import {
   signupSchema,
@@ -26,7 +26,7 @@ import {
   SignupFormData,
   TYPE_OPTIONS,
   ROLE_OPTIONS,
-} from "./api/send/signup";
+} from "../apiCalls/signup";
 import { useSearchParams } from "next/navigation";
 
 const SignupPage = () => {
@@ -358,10 +358,10 @@ const SignupPage = () => {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const authToken = await getCookie("authToken", context);
 
-  const isTokenValid = await isValidToken(context.req, authToken);
+  const token = await decodeToken(context.req, authToken);
 
   const query = parseQueryToStrings(context.query);
-  if (isTokenValid) {
+  if (token) {
     // Decode the callback URL from URI encoding
     const callbackUrl = query.callbackUrl
       ? decodeURIComponent(query.callbackUrl)

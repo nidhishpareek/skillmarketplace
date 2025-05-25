@@ -44,11 +44,11 @@ export default async function handler(
     return;
   }
   const { requestEndpoint, ...query } = req.query;
-  const { endpoint } = parseQueryToStrings({ endpoint: requestEndpoint });
-  console.log("requestEndpoint:", requestEndpoint);
+  const endpoint = `${req.url?.replace("/api/send", "")}` || "";
+  console.log("requestEndpoint:", req.url, requestEndpoint);
   try {
     const response = await sendServerRequest(
-      `/${endpoint}` || "",
+      endpoint,
       {
         method: req.method,
         headers: req.headers,

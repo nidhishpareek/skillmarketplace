@@ -2,8 +2,9 @@ import { IncomingMessage } from "http";
 import { NextApiRequest } from "next";
 import { sendServerRequest } from "./serverRequest";
 import { GetServerSidePropsContext } from "next";
+import { deleteCookie } from "cookies-next/server";
 
-export const isValidToken = async (
+export const decodeToken = async (
   req: NextApiRequest | IncomingMessage,
   authToken?: String
 ) => {
@@ -22,7 +23,7 @@ export const isValidToken = async (
 
     if (!verifyData.data.valid) throw new Error("Invalid token");
 
-    return verifyData.data.valid;
+    return { isValid: verifyData.data.valid, user: verifyData.data.user };
   } catch (error) {
     console.error("Token validation error:", error);
     return false;
@@ -35,9 +36,17 @@ export const validateTokenAndRedirectLogin = async (
   const { req, resolvedUrl } = context;
   const authToken = req.cookies?.authToken;
 
-  const isValid = await isValidToken(req, authToken);
-  if (!isValid) {
-    const callbackUrl = encodeURIComponent(resolvedUrl);
+  const validity = await decodeToken(req, authToken);
+  if (!validity) {
+    deleteCookie("authToken", context); // Clear the invalid token
+
+    const callbackUrl = encodeURIComponent(
+      `${resolvedUrl}${
+        context.resolvedUrl.includes("?") ? "&" : "?"
+      }${new URLSearchParams(
+        context.query as Record<string, string>
+      ).toString()}`
+    );
     return {
       redirect: {
         destination: `/login?callbackUrl=${callbackUrl}`,
@@ -46,5 +55,7 @@ export const validateTokenAndRedirectLogin = async (
     };
   }
 
-  return { props: {} };
+  return {
+    user: validity.user,
+  };
 };

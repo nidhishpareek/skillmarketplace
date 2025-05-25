@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import { handleLogin, loginSchema } from "../apiCalls/auth";
 import { GetServerSideProps } from "next";
 import { getCookie } from "cookies-next/server";
-import { isValidToken } from "@/utils/tokenValidity";
+import { decodeToken } from "@/utils/tokenValidity";
 import { parseQueryToStrings } from "@/utils/queryParser";
 import { useSearchParams } from "next/navigation";
 
@@ -98,9 +98,9 @@ export default LoginPage;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const authToken = await getCookie("authToken", context);
-  const isTokenValid = await isValidToken(context.req, authToken);
+  const token = await decodeToken(context.req, authToken);
 
-  if (isTokenValid) {
+  if (token) {
     // If the token is valid, redirect to the home page or callback URL
     const callbackUrl = context.query.callbackUrl || "/";
     return {
