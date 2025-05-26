@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -33,7 +33,7 @@ const SkillModal = ({
       id: "",
     },
   });
-
+  console.log("initialData", initialData);
   const handleClose = () => {
     reset();
     onClose();
@@ -143,6 +143,19 @@ const SkillModal = ({
             )}
           />
           <Box mt={2} display="flex" justifyContent="space-between">
+            {initialData && (
+              <Button
+                onClick={() => {
+                  if (initialData?.id) {
+                    onDelete(initialData.id);
+                  }
+                }}
+                variant="outlined"
+                color="error"
+              >
+                Delete
+              </Button>
+            )}
             <Button onClick={handleClose} variant="outlined">
               Cancel
             </Button>
@@ -150,20 +163,6 @@ const SkillModal = ({
               {initialData ? "Update" : "Create"}
             </Button>
           </Box>
-          {initialData && (
-            <Button
-              onClick={() => {
-                if (initialData?.id) {
-                  onDelete(initialData.id);
-                }
-              }}
-              variant="outlined"
-              color="error"
-              sx={{ mt: 2 }}
-            >
-              Delete
-            </Button>
-          )}
         </form>
       </Box>
     </Modal>

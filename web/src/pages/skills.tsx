@@ -70,6 +70,7 @@ export default function Home() {
         </Box>
         <SkillListing skills={skills} onEdit={handleEdit} />
         <SkillModal
+          key={editingSkill ? editingSkill.id : "new-skill-modal"}
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           onSubmit={handleSubmit}
