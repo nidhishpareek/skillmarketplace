@@ -37,9 +37,9 @@ export const createProfileSchema = object({
       )
       .required("Postcode is required"),
   }).when("type", {
-    is: Type.INDIVIDUAL, // Only required for individuals
+    is: "INDIVIDUAL", // Only required for individuals
     then: (schema) => schema.required("Address is required for individuals"),
-    otherwise: (schema) => schema.optional(),
+    otherwise: (schema) => schema.notRequired(),
   }),
 
   // Company fields

@@ -16,7 +16,9 @@ describe("loginSchema", () => {
       password: "Password@123",
     };
 
-    await expect(loginSchema.validate(invalidInput)).rejects.toThrow(ValidationError);
+    await expect(loginSchema.validate(invalidInput)).rejects.toThrow(
+      ValidationError
+    );
   });
 
   it("should fail if password is missing", async () => {
@@ -24,7 +26,9 @@ describe("loginSchema", () => {
       userIdentity: "test@example.com",
     };
 
-    await expect(loginSchema.validate(invalidInput)).rejects.toThrow(ValidationError);
+    await expect(loginSchema.validate(invalidInput)).rejects.toThrow(
+      ValidationError
+    );
   });
 
   it("should fail if userIdentity is invalid", async () => {
@@ -33,7 +37,9 @@ describe("loginSchema", () => {
       password: "Password@123",
     };
 
-    await expect(loginSchema.validate(invalidInput)).rejects.toThrow(ValidationError);
+    await expect(loginSchema.validate(invalidInput)).rejects.toThrow(
+      ValidationError
+    );
   });
 
   it("should fail if password does not meet requirements", async () => {
@@ -42,6 +48,8 @@ describe("loginSchema", () => {
       password: "short",
     };
 
-    await expect(loginSchema.validate(invalidInput)).rejects.toThrow(ValidationError);
+    await expect(loginSchema.validate(invalidInput)).rejects.toThrow(
+      ValidationError
+    );
   });
 });
