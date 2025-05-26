@@ -38,7 +38,7 @@ export const validateTokenAndRedirectLogin = async (
 
   const validity = await decodeToken(req, authToken);
   if (!validity) {
-    deleteCookie("authToken", context); // Clear the invalid token
+    // deleteCookie("authToken", context); // Clear the invalid token
 
     const callbackUrl = encodeURIComponent(
       `${resolvedUrl}${

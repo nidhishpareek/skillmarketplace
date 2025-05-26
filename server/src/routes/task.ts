@@ -7,6 +7,7 @@ import { createOfferSchema, CreateOfferInput } from "../schemas/offer";
 import { createProgressLogSchema } from "../schemas/progressLog";
 import { Role } from "@prisma/client";
 import { AuthenticatedRequest } from "../middleware/requireAuth";
+import { acknowledgeTaskSchema } from "../schemas/acknowledgeTask";
 
 const router = Router();
 
@@ -105,10 +106,17 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
       providerId: !isProvider ? undefined : user.id,
     },
   };
-
+  const where = isProvider // for provider, show tasks with accepted offers or no offers
+    ? {
+        OR: [
+          { acceptedOffer: { providerId: user.id } },
+          { acceptedOfferId: null },
+        ],
+      }
+    : { userId: user.id }; // for user, show tasks created by the user
   try {
     const tasks = await prisma.task.findMany({
-      where: { userId: user.role === Role.USER ? user.id : undefined },
+      where,
       skip: offset,
       take: limit,
       orderBy: { createdAt: "desc" },
@@ -271,6 +279,143 @@ router.post(
       });
 
       res.status(201).json({ log: progressLog.log, progressLog });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+router.post(
+  "/:id/complete",
+  requireAuth,
+  async (req: AuthenticatedRequest, res) => {
+    const { id } = req.params;
+    const user = req.user;
+
+    if (!user?.id) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    // Check if the task is accepted and the provider matches the user
+    const task = await prisma.task.findUnique({
+      where: { id },
+      include: {
+        acceptedOffer: {
+          select: {
+            providerId: true,
+          },
+        },
+      },
+    });
+
+    if (!task || task.acceptedOffer?.providerId !== user.id) {
+      res.status(403).json({
+        error: "You are not authorized to create a progress log for this task.",
+      });
+      return;
+    }
+    try {
+      const updatedTask = await prisma.$transaction(async (prisma) => {
+        const taskUpdate = await prisma.task.update({
+          where: { id },
+          data: { isCompleted: true, completedAt: new Date() },
+        });
+
+        const progressLog = await prisma.logs.create({
+          data: {
+            description: `${
+              user.name
+            } marked the task completed at ${new Date().toDateString()}`,
+            profileId: user.id,
+          },
+        });
+
+        await prisma.progressLogs.create({
+          data: {
+            taskId: id,
+            profileId: user.id,
+            logId: progressLog.id,
+          },
+        });
+
+        return taskUpdate;
+      });
+
+      res
+        .status(200)
+        .json({ message: "Task marked as complete", task: updatedTask });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+router.post(
+  "/:id/acknowledge",
+  requireAuth,
+  validateBody(acknowledgeTaskSchema),
+  async (req: AuthenticatedRequest, res) => {
+    const { id } = req.params;
+    const { action } = req.body; // action can be 'accept' or 'reject'
+    const user = req.user;
+
+    if (!user?.id) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    try {
+      if (action === "accept") {
+        const updatedTask = await prisma.task.update({
+          where: { id },
+          data: {
+            acceptedAt: new Date(),
+            acceptedById: user.id,
+          },
+        });
+
+        res
+          .status(200)
+          .json({ message: "Task completion accepted", task: updatedTask });
+      } else if (action === "reject") {
+        const updatedTask = await prisma.$transaction(async (prisma) => {
+          const taskUpdate = await prisma.task.update({
+            where: { id },
+            data: {
+              completedAt: null,
+              isCompleted: false,
+            },
+          });
+
+          const progressLog = await prisma.logs.create({
+            data: {
+              description: `${
+                user.name
+              } rejected the task completion at ${new Date().toISOString()}`,
+              profileId: user.id,
+            },
+          });
+
+          await prisma.progressLogs.create({
+            data: {
+              taskId: id,
+              profileId: user.id,
+              logId: progressLog.id,
+            },
+          });
+
+          return taskUpdate;
+        });
+
+        res
+          .status(200)
+          .json({ message: "Task completion rejected", task: updatedTask });
+      } else {
+        res
+          .status(400)
+          .json({ error: "Invalid action. Use 'accept' or 'reject'." });
+      }
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

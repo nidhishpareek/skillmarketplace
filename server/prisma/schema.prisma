@@ -98,14 +98,17 @@ model Skill {
 model Task {
     id String @id @default(cuid())
 
-    category        TaskCategory
-    name            String
-    description     String
-    isCompleted     Boolean      @default(false)
-    taskAccepted    Boolean      @default(false)
-    acceptedOfferId String?      @unique
+    category    TaskCategory
+    name        String
+    description String
+    isCompleted Boolean      @default(false)
+    completedAt DateTime?
+
+    taskAccepted    Boolean   @default(false)
+    acceptedOfferId String?   @unique
     userId          String
-    acceptedById    String?
+    acceptedById    String? // so we can extend for the company in future (suppose company has multiple users)
+    acceptedAt      DateTime?
 
     user          Profile        @relation(fields: [userId], references: [id])
     offers        Offer[]

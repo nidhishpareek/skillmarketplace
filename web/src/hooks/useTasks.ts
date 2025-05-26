@@ -3,6 +3,7 @@ import useSWR, { mutate } from "swr";
 import axios from "axios";
 import { InferType } from "yup";
 import { offerSchema } from "@/yupSchema/offerSchema";
+import { sendServerRequest } from "@/utils/serverRequest";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -44,22 +45,43 @@ export const useTasks = () => {
 
   const addProgressLog = async (taskId: string, description: string) => {
     try {
-      const response = await fetch(`/api/send/tasks/${taskId}/progressLog`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ description }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add progress log");
-      }
+      const response = await axios.post(
+        `/api/send/tasks/${taskId}/progressLog`,
+        {
+          description,
+        }
+      );
 
       // Mutate the tasks API to refresh the data
-      mutate("/api/tasks");
+      mutate("/api/send/tasks");
     } catch (error) {
       console.error("Error adding progress log:", error);
+      throw error;
+    }
+  };
+
+  const markTaskComplete = async (taskId: string) => {
+    try {
+      await axios.post(`/api/send/tasks/${taskId}/complete`);
+      mutate("/api/send/tasks");
+    } catch (error) {
+      throw new Error("Failed to mark task as complete");
+    }
+  };
+
+  const acknowledgeTask = async (
+    taskId: string,
+    action: "accept" | "reject"
+  ) => {
+    try {
+      const response = await axios.post(
+        `/api/send/tasks/${taskId}/acknowledge`,
+        { action }
+      );
+      mutate("/api/send/tasks"); // Revalidate the tasks data
+      return response.data;
+    } catch (error) {
+      console.error("Error in acknowledgeTask:", error);
       throw error;
     }
   };
@@ -72,5 +94,7 @@ export const useTasks = () => {
     createOffer, // Add createOffer to the returned object
     acceptOffer, // Add acceptOffer to the returned object
     addProgressLog,
+    markTaskComplete,
+    acknowledgeTask,
   };
 };
