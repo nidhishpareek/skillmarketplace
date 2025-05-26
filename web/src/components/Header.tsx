@@ -1,6 +1,11 @@
+import { UserRole } from "@/apiCalls/signup";
+import { useUser } from "@/context/UserContext";
 import { Box, Button } from "@mui/material";
+import { useRouter } from "next/router";
 
 export const Header = () => {
+  const { user } = useUser();
+  const isProvider = user?.role !== UserRole.PROVIDER;
   return (
     <Box
       sx={{
@@ -15,9 +20,11 @@ export const Header = () => {
       <Button href="/" variant="text" color="primary">
         Home
       </Button>
-      <Button href="/skills" variant="text" color="primary">
-        Skills
-      </Button>
+      {!isProvider && (
+        <Button href="/skills" variant="text" color="primary">
+          Skills
+        </Button>
+      )}
     </Box>
   );
 };

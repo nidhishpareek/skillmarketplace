@@ -13,7 +13,7 @@ router.post(
   "/",
   validateBody(createTaskSchema),
   async (req: AuthenticatedRequest, res) => {
-    const { category, name, description } = req.body as CreateTaskInput;
+    const { id, category, name, description } = req.body as CreateTaskInput;
     const user = req.user;
 
     if (!user?.profileId) {
@@ -22,8 +22,14 @@ router.post(
     }
 
     try {
-      const task = await prisma.task.create({
-        data: {
+      const task = await prisma.task.upsert({
+        where: { id: id || "" }, // Use empty string if id is null
+        update: {
+          category,
+          name,
+          description,
+        },
+        create: {
           category,
           name,
           description,
@@ -31,46 +37,6 @@ router.post(
         },
       });
       res.status(201).json(task);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-);
-
-router.put(
-  "/:id",
-  requireAuth,
-  validateBody(createTaskSchema),
-  async (req: AuthenticatedRequest, res) => {
-    const { id } = req.params;
-    //TODO: Add partial validation instead of entire create validation
-    const { category, name, description } = req.body as CreateTaskInput;
-    const user = req.user;
-
-    if (!user?.profileId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    try {
-      const task = await prisma.task.update({
-        where: {
-          id,
-          userId: user.profileId,
-        },
-        data: {
-          category,
-          name,
-          description,
-        },
-      });
-
-      if (!task) {
-        res.status(404).json({ error: "Task not found" });
-        return;
-      }
-
-      res.status(200).json(task);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -139,12 +105,14 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
       where: { userId: user.role === Role.USER ? undefined : user.profileId },
       skip: offset,
       take: limit,
+      orderBy: { createdAt: "desc" },
       include: {
         progressLogs: {
           include: {
             log: true,
           },
         },
+        acceptedBy: true,
         acceptedOffer: {
           include: { ...providerPropertiesIncluded },
         },

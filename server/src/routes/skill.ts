@@ -3,6 +3,7 @@ import { prisma } from "../libs/prisma";
 import { AuthenticatedRequest, requireAuth } from "../middleware/requireAuth";
 import { validateBody } from "../middleware/validateBody";
 import { createSkillSchema, CreateSkillInput } from "../schemas/skill";
+import { Role } from "@prisma/client";
 
 const router = Router();
 router.post(
@@ -14,7 +15,7 @@ router.post(
 
     const user = req.user;
 
-    if (!user?.profileId) {
+    if (!user?.profileId || user.role !== Role.USER) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }

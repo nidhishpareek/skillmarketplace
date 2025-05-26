@@ -3,8 +3,16 @@ import * as yup from "yup";
 import { InferType } from "yup";
 
 // Added constants for type and role options
-export const TYPE_OPTIONS = ["INDIVIDUAL", "COMPANY"];
-export const ROLE_OPTIONS = ["ADMIN", "USER"];
+export enum UserType {
+  INDIVIDUAL = "INDIVIDUAL",
+  COMPANY = "COMPANY",
+}
+export enum UserRole {
+  PROVIDER = "PROVIDER",
+  USER = "USER",
+}
+export const TYPE_OPTIONS = Object.values(UserType);
+export const ROLE_OPTIONS = Object.values(UserRole);
 
 export const signupSchema = yup.object().shape({
   type: yup.string().oneOf(TYPE_OPTIONS).required("Type is required"),

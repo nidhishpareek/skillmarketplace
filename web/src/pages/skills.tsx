@@ -5,11 +5,12 @@ import { GetServerSideProps } from "next";
 import { validateTokenAndRedirectLogin } from "@/utils/tokenValidity";
 import { Box, Button } from "@mui/material";
 import { Header } from "@/components/Header";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useSkills } from "@/hooks/useSkills";
 import SkillModal from "@/components/SkillModal";
 import SkillListing from "@/components/SkillListing";
 import { CreateSkillInput } from "@/apiCalls/skills";
+import { useUser } from "@/context/UserContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,7 @@ export default function Home() {
   const { skills, isLoading, error, updateSkill, deleteSkill } = useSkills();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<any>(null);
-
+  const userContext = useUser();
   const handleCreate = () => {
     setEditingSkill(null);
     setModalOpen(true);
@@ -87,6 +88,15 @@ export default function Home() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const tokenCheck = await validateTokenAndRedirectLogin(context);
   if (tokenCheck.redirect) return tokenCheck;
+  //allow only user to acces this page
+  if (tokenCheck.user.role !== "USER") {
+    return {
+      redirect: {
+        destination: `/?callbackUrl`,
+        permanent: false,
+      },
+    };
+  }
 
   return {
     props: {
