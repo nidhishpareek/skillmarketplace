@@ -1,12 +1,8 @@
 import { Request as ExpressRequest, Response, NextFunction } from "express";
-import { verifyJWT } from "../utils/auth/jwt";
+import { ProfileJWTPayload, verifyJWT } from "../utils/auth/jwt";
 
 export type AuthenticatedRequest = ExpressRequest & {
-  user?: {
-    profileId: string;
-    role: string;
-    type: string;
-  };
+  user?: ProfileJWTPayload;
 };
 
 export function requireAuth(
@@ -31,9 +27,10 @@ export function requireAuth(
   }
   // Attach user info to request
   req.user = {
-    profileId: payload.id,
+    id: payload.id,
     role: payload.role,
     type: payload.type,
+    name: payload.name || "",
   };
   next();
 }

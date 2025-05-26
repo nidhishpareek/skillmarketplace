@@ -8,7 +8,6 @@ export const createOfferSchema = object({
   currency: mixed<Currency>()
     .oneOf(Object.values(Currency))
     .required("Currency is required"),
-  taskId: string().required("Task ID is required"),
 });
 
 export type CreateOfferInput = InferType<typeof createOfferSchema>;

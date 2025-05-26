@@ -14,6 +14,7 @@ export interface ProfileJWTPayload {
   id: string;
   role: string;
   type: string;
+  name: String;
 }
 
 export function createJWT(

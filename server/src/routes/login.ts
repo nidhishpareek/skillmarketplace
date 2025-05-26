@@ -14,7 +14,14 @@ router.post("/", validateBody(loginSchema), async (req, res) => {
         password,
         OR: [{ email: userIdentity }, { mobileNumber: userIdentity }],
       },
-      select: { id: true, role: true, type: true, password: true },
+      select: {
+        id: true,
+        role: true,
+        type: true,
+        password: true,
+        firstName: true,
+        lastName: true,
+      },
     });
 
     if (!user) {
@@ -24,7 +31,9 @@ router.post("/", validateBody(loginSchema), async (req, res) => {
     const token = createJWT({
       id: user.id,
       role: user.role,
-      type: user.type ?? "",
+      type: user.type,
+      name:
+        [user.firstName, user.lastName].filter((ele) => ele).join(" ") || "",
     });
     res.json({ token });
     return;

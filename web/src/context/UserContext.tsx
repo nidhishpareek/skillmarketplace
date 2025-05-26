@@ -5,8 +5,7 @@ type User = {
   id: string;
   type: UserType;
   role: UserRole;
-  //   name: string;
-  //   email: string;
+  name: string;
   // Add other user properties as needed
 };
 

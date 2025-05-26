@@ -15,7 +15,7 @@ router.post(
 
     const user = req.user;
 
-    if (!user?.profileId || user.role !== Role.USER) {
+    if (!user?.id || user.role !== Role.USER) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -36,7 +36,7 @@ router.post(
           nature,
           currency,
           hourlyRate,
-          profileId: user.profileId,
+          profileId: user.id,
         },
       });
       res.status(201).json(skill);
@@ -50,7 +50,7 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { page = 1, pageSize = 10 } = req.query;
   const user = req.user;
 
-  if (!user?.profileId) {
+  if (!user?.id) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
@@ -61,7 +61,7 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const skills = await prisma.skill.findMany({
       where: {
-        profileId: user.profileId,
+        profileId: user.id,
       },
       skip: offset,
       take: limit,
@@ -77,7 +77,7 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const user = req.user;
 
-  if (!user?.profileId) {
+  if (!user?.id) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
@@ -86,7 +86,7 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     const deletedSkill = await prisma.skill.deleteMany({
       where: {
         id: id,
-        profileId: user.profileId,
+        profileId: user.id,
       },
     });
 

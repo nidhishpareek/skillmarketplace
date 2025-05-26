@@ -26,6 +26,8 @@ import {
   SignupFormData,
   TYPE_OPTIONS,
   ROLE_OPTIONS,
+  UserType,
+  UserRole,
 } from "../apiCalls/signup";
 import { useSearchParams } from "next/navigation";
 
@@ -38,8 +40,8 @@ const SignupPage = () => {
   const { control, handleSubmit, watch, trigger } = useForm({
     resolver: yupResolver(signupSchema),
     defaultValues: {
-      type: "INDIVIDUAL",
-      role: "USER",
+      type: UserType.INDIVIDUAL,
+      role: UserRole.USER,
       firstName: "",
       lastName: "",
       email: "",

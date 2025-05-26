@@ -44,7 +44,7 @@ enum TaskCategory {
 model Profile {
     id           String   @id @default(cuid())
     role         Role
-    type         Type?
+    type         Type
     firstName    String?
     lastName     String?
     mobileNumber String   @unique

@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+import { Request } from "express";
 
 export interface RequestWithUser extends Request {
   user: {
-    profileId: string;
+    id: string;
     role: string;
     type: string;
   };

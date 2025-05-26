@@ -17,5 +17,5 @@ router.use("/login", loginRouter);
 
 router.use("/verify", requireAuth, verifyAuth);
 router.use("/skill", requireAuth, skillRouter);
-router.use("/task", requireAuth, taskRouter);
+router.use("/tasks", requireAuth, taskRouter);
 export default router;

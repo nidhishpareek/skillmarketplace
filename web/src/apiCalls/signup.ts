@@ -15,8 +15,8 @@ export const TYPE_OPTIONS = Object.values(UserType);
 export const ROLE_OPTIONS = Object.values(UserRole);
 
 export const signupSchema = yup.object().shape({
-  type: yup.string().oneOf(TYPE_OPTIONS).required("Type is required"),
-  role: yup.string().oneOf(ROLE_OPTIONS).required("Role is required"),
+  type: yup.mixed<UserType>().oneOf(TYPE_OPTIONS).required("Type is required"),
+  role: yup.mixed<UserRole>().oneOf(ROLE_OPTIONS).required("Role is required"),
   firstName: yup.string().required("First name is required"),
   lastName: yup.string().required("Last name is required"),
   email: yup.string().email().required("Email is required"),
@@ -32,7 +32,7 @@ export const signupSchema = yup.object().shape({
     ),
   mobileNumber: yup
     .string()
-    .matches(/^(\+\d{1,3}[- ]?)?\d{10}$/, "Invalid mobile number")
+    .matches(/^\(\+\d{1,3}[- ]?)?\d{10}$/, "Invalid mobile number")
     .required("Mobile number is required"),
   address: yup.object().shape({
     streetNumber: yup.string().required("Street number is required"),

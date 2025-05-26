@@ -16,7 +16,7 @@ router.post(
     const { id, category, name, description } = req.body as CreateTaskInput;
     const user = req.user;
 
-    if (!user?.profileId) {
+    if (!user?.id) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -33,7 +33,7 @@ router.post(
           category,
           name,
           description,
-          userId: user.profileId,
+          userId: user.id,
         },
       });
       res.status(201).json(task);
@@ -47,7 +47,7 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const user = req.user;
 
-  if (!user?.profileId) {
+  if (!user?.id) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
@@ -56,7 +56,7 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     const task = await prisma.task.delete({
       where: {
         id,
-        userId: user.profileId,
+        userId: user.id,
       },
       select: {
         id: true,
@@ -91,8 +91,8 @@ const providerPropertiesIncluded = {
 router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { page = 1, pageSize = 10 } = req.query;
   const user = req.user;
-
-  if (!user?.profileId) {
+  const isProvider = user?.role === Role.PROVIDER;
+  if (!user?.id) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
@@ -102,23 +102,34 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
 
   try {
     const tasks = await prisma.task.findMany({
-      where: { userId: user.role === Role.USER ? undefined : user.profileId },
+      where: { userId: user.role === Role.USER ? undefined : user.id },
       skip: offset,
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
         progressLogs: {
           include: {
             log: true,
           },
         },
         acceptedBy: true,
-        acceptedOffer: {
-          include: { ...providerPropertiesIncluded },
-        },
+        acceptedOffer: isProvider
+          ? {
+              include: { ...providerPropertiesIncluded },
+            }
+          : undefined,
         offers: {
           include: {
             ...providerPropertiesIncluded,
+          },
+          where: {
+            providerId: !isProvider ? user.id : undefined,
           },
         },
       },
@@ -139,8 +150,8 @@ router.post(
     const { hourlyRate, startDate, expectedHours, currency } =
       req.body as CreateOfferInput;
     const user = req.user;
-
-    if (!user?.profileId) {
+    console.log(user);
+    if (!user?.id || user.role !== Role.PROVIDER) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -152,7 +163,7 @@ router.post(
           startDate: new Date(startDate),
           expectedHours,
           currency,
-          providerId: user.profileId,
+          providerId: user.id,
           taskId,
         },
       });
@@ -171,7 +182,7 @@ router.post(
     const { taskId, offerId } = req.params;
     const user = req.user;
 
-    if (!user?.profileId) {
+    if (!user?.id) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -179,7 +190,7 @@ router.post(
     try {
       // Check if the task belongs to the user
       const task = await prisma.task.findUnique({
-        where: { id: taskId, userId: user.profileId },
+        where: { id: taskId, userId: user.id },
       });
 
       if (!task) {

@@ -1,26 +1,15 @@
 import Head from "next/head";
-import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { GetServerSideProps } from "next";
 import { validateTokenAndRedirectLogin } from "@/utils/tokenValidity";
 import { Box, Button } from "@mui/material";
 import { Header } from "@/components/Header";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { useSkills } from "@/hooks/useSkills";
 import SkillModal from "@/components/SkillModal";
 import SkillListing from "@/components/SkillListing";
 import { CreateSkillInput } from "@/apiCalls/skills";
 import { useUser } from "@/context/UserContext";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export default function Home() {
   const { skills, isLoading, error, updateSkill, deleteSkill } = useSkills();
@@ -51,9 +40,6 @@ export default function Home() {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading skills</div>;
-
   return (
     <>
       <Header />
@@ -63,24 +49,28 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div>
-        <Box display="flex" p={2}>
-          <Button variant="contained" onClick={handleCreate}>
-            Create Skill
-          </Button>
-        </Box>
-        <SkillListing skills={skills} onEdit={handleEdit} />
-        <SkillModal
-          key={editingSkill ? editingSkill.id : "new-skill-modal"}
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onSubmit={handleSubmit}
-          onDelete={handleDelete}
-          initialData={editingSkill}
-        />
-        <main className={styles.main}></main>
-        <footer className={styles.footer}></footer>
-      </div>
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : error ? (
+        <div>Error loading skills</div>
+      ) : (
+        <div>
+          <Box display="flex" p={2}>
+            <Button variant="contained" onClick={handleCreate}>
+              Create Skill
+            </Button>
+          </Box>
+          <SkillListing skills={skills} onEdit={handleEdit} />
+          <SkillModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onSubmit={handleSubmit}
+            initialData={editingSkill}
+          />
+          <main className={styles.main}></main>
+          <footer className={styles.footer}></footer>
+        </div>
+      )}
     </>
   );
 }

@@ -20,7 +20,7 @@ const postCallActions: Record<
     data: any
   ) => Promise<void>
 > = {
-  login: async (req, res, data) => {
+  "/login": async (req, res, data) => {
     console.log("Post call action for /login executed");
     if (data?.token)
       setCookie("authToken", data?.token, {
