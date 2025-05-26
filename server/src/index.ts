@@ -9,9 +9,12 @@ applyMiddleware(app);
 
 app.use("/", routes);
 
-app.listen(ENV.PORT, () => {
-  console.log(`Server is running at http://localhost:${ENV.PORT}`);
-});
+let server;
+if (process.env.NODE_ENV !== "test") {
+  server = app.listen(ENV.PORT, () => {
+    console.log(`Server is running at http://localhost:${ENV.PORT}`);
+  });
+}
 
 app.use((req, res) => {
   res.status(404).json({
@@ -19,3 +22,5 @@ app.use((req, res) => {
     path: req.originalUrl,
   });
 });
+
+export { app, server };

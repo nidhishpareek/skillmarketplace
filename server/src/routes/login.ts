@@ -25,7 +25,7 @@ router.post("/", validateBody(loginSchema), async (req, res) => {
     });
 
     if (!user) {
-      res.status(400).json({ error: "Invalid user ID or password" });
+      res.status(401).json({ error: "Invalid credentials" }); // Changed from 400 to 401
       return;
     }
     const token = createJWT({
@@ -38,6 +38,7 @@ router.post("/", validateBody(loginSchema), async (req, res) => {
     res.json({ token });
     return;
   } catch (error: any) {
+    console.error("Login API Error:", error);
     res.status(500).json({ error: error.message });
     return;
   }

@@ -29,13 +29,14 @@ import {
   UserType,
   UserRole,
 } from "../apiCalls/signup";
+import { useUser } from "@/context/UserContext";
 
 const SignupPage = ({ query }: { query: Record<string, string> }) => {
   const [step, setStep] = useState(1);
   const router = useRouter();
   const appendQuery = query ? `?${new URLSearchParams(query).toString()}` : "";
-
-  const { control, handleSubmit, trigger } = useForm({
+  const { user } = useUser();
+  const { control, handleSubmit, trigger, watch } = useForm({
     resolver: yupResolver(signupSchema),
     defaultValues: {
       type: UserType.INDIVIDUAL,
@@ -56,6 +57,7 @@ const SignupPage = ({ query }: { query: Record<string, string> }) => {
       businessTaxNumber: "",
     },
   });
+  const type = watch("type");
 
   const onSubmit = async (data: SignupFormData) => {
     const success = await handleSignup(data);
@@ -228,38 +230,41 @@ const SignupPage = ({ query }: { query: Record<string, string> }) => {
                     />
                   )}
                 />
+                {type === UserType.COMPANY && (
+                  <Controller
+                    name="companyName"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        label="Company Name"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                )}
 
-                <Controller
-                  name="companyName"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label="Company Name"
-                      variant="outlined"
-                      fullWidth
-                      margin="normal"
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
-                />
-
-                <Controller
-                  name="businessTaxNumber"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label="Business Tax Number"
-                      variant="outlined"
-                      fullWidth
-                      margin="normal"
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
-                />
+                {type === UserType.COMPANY && (
+                  <Controller
+                    name="businessTaxNumber"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        label="Business Tax Number"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                )}
 
                 <Button
                   variant="contained"

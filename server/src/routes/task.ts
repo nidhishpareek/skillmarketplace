@@ -4,6 +4,7 @@ import { requireAuth } from "../middleware/requireAuth";
 import { validateBody } from "../middleware/validateBody";
 import { createTaskSchema, CreateTaskInput } from "../schemas/task";
 import { createOfferSchema, CreateOfferInput } from "../schemas/offer";
+import { createProgressLogSchema } from "../schemas/progressLog";
 import { Role } from "@prisma/client";
 import { AuthenticatedRequest } from "../middleware/requireAuth";
 
@@ -207,6 +208,70 @@ router.post(
       res
         .status(200)
         .json({ message: "Offer accepted successfully", acceptedTask });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+router.post(
+  "/:id/progressLog",
+  requireAuth,
+  validateBody(createProgressLogSchema),
+  async (req: AuthenticatedRequest, res) => {
+    const { id } = req.params;
+    const { description } = req.body;
+    const user = req.user;
+
+    if (!user?.id) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    // Check if the task is accepted and the provider matches the user
+    const task = await prisma.task.findUnique({
+      where: { id },
+      include: {
+        acceptedOffer: {
+          include: {
+            provider: true,
+          },
+        },
+      },
+    });
+
+    if (!task || task.acceptedOffer?.provider?.id !== user.id) {
+      res.status(403).json({
+        error:
+          "You are not authorized to create a progress log for this task.",
+      });
+      return;
+    }
+
+    try {
+      const progressLog = await prisma.$transaction(async (prisma) => {
+        const log = await prisma.logs.create({
+          data: {
+            description,
+            profileId: user.id,
+          },
+        });
+
+        const progressLog = await prisma.progressLogs.create({
+          data: {
+            taskId: id,
+            profileId: user.id,
+            logId: log.id,
+          },
+          include: {
+            log: true,
+          },
+        });
+
+        return progressLog;
+      });
+
+      res.status(201).json({ log: progressLog.log, progressLog });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
