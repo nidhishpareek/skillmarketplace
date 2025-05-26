@@ -10,6 +10,7 @@ import SkillModal from "@/components/SkillModal";
 import SkillListing from "@/components/SkillListing";
 import { CreateSkillInput } from "@/apiCalls/skills";
 import { useUser } from "@/context/UserContext";
+import { UserRole } from "@/apiCalls/signup";
 
 export default function Home() {
   const { skills, isLoading, error, updateSkill, deleteSkill } = useSkills();
@@ -79,7 +80,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const tokenCheck = await validateTokenAndRedirectLogin(context);
   if (tokenCheck.redirect) return tokenCheck;
   //allow only user to acces this page
-  if (tokenCheck.user.role !== "USER") {
+  if (tokenCheck.user.role !== UserRole.PROVIDER) {
     return {
       redirect: {
         destination: `/?callbackUrl`,

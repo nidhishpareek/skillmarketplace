@@ -36,7 +36,6 @@ const OfferModal = () => {
   const { selectedTask, offerModalOpen, onOfferClose } = useTaskContext();
   const handleFormSubmit = async (data: any) => {
     try {
-      console.log("Submitting offer with data:", data, selectedTask);
       if (!selectedTask?.id) throw new Error("No task selected");
 
       await createOffer(selectedTask?.id, data); // Use createOffer to submit the offer

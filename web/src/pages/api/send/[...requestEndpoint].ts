@@ -21,7 +21,7 @@ const postCallActions: Record<
   ) => Promise<void>
 > = {
   "/login": async (req, res, data) => {
-    console.log("Post call action for /login executed");
+    console.warn("Post call action for /login executed");
     if (data?.token)
       setCookie("authToken", data?.token, {
         req,
@@ -45,7 +45,7 @@ export default async function handler(
   }
   const { requestEndpoint, ...query } = req.query;
   const endpoint = `${req.url?.replace("/api/send", "")}` || "";
-  console.log("requestEndpoint:", req.url, requestEndpoint);
+  console.error("requestEndpoint:", req.url, requestEndpoint);
   try {
     const response = await sendServerRequest(
       endpoint,
@@ -63,7 +63,7 @@ export default async function handler(
     }
     res.status(response.status).json(response.data);
   } catch (error: any) {
-    console.log("Error in API handler:", error);
+    console.error("Error in API handler:", error);
     res
       .status(error.response?.status || 500)
       .json(error.response?.data || { error: "An error occurred" });

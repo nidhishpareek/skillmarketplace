@@ -144,7 +144,7 @@ router.post(
     const { hourlyRate, startDate, expectedHours, currency } =
       req.body as CreateOfferInput;
     const user = req.user;
-    console.log(user);
+
     if (!user?.id || user.role !== Role.PROVIDER) {
       res.status(401).json({ error: "Unauthorized" });
       return;

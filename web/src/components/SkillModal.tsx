@@ -33,7 +33,7 @@ const SkillModal = ({
       id: "",
     },
   });
-  console.log("initialData", initialData);
+
   const handleClose = () => {
     reset();
     onClose();

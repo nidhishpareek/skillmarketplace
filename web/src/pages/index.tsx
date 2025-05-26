@@ -26,7 +26,6 @@ function Home() {
     onOffer,
   } = useTaskContext();
   const { user } = useUser();
-  console.log(modificationModalOpen, selectedTask);
 
   return (
     <>
