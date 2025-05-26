@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -7,7 +7,12 @@ import {
   List,
   ListItem,
   ListItemText,
+  TextField,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useTasks } from "@/hooks/useTasks";
 import { useUser } from "@/context/UserContext";
 import { toast } from "react-toastify";
@@ -15,7 +20,8 @@ import { UserRole } from "@/apiCalls/signup";
 
 const TaskDetailsModal = ({ open, onClose, task }: any) => {
   const { user } = useUser();
-  const { acceptOffer } = useTasks();
+  const { acceptOffer, addProgressLog } = useTasks();
+  const [progressLog, setProgressLog] = useState("");
 
   if (!task) return null;
 
@@ -32,6 +38,20 @@ const TaskDetailsModal = ({ open, onClose, task }: any) => {
     }
   };
 
+  const handleAddProgressLog = async () => {
+    if (task?.id && progressLog.trim()) {
+      try {
+        await addProgressLog(task.id, progressLog);
+        toast.success("Progress log added successfully!");
+        setProgressLog("");
+        onClose();
+      } catch (error) {
+        console.error("Failed to add progress log:", error);
+        toast.error("Failed to add progress log. Please try again.");
+      }
+    }
+  };
+  const isProgressPostingAllowed = task.acceptedOffer?.providerId === user?.id;
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -68,8 +88,9 @@ const TaskDetailsModal = ({ open, onClose, task }: any) => {
         <Typography>
           Posted by: {task.user?.firstName} {task.user?.lastName}
         </Typography>
-        <Typography>Company: {task.user?.companyName}</Typography>
-        <Typography>Progress Logs:</Typography>
+        {task.user?.companyName && (
+          <Typography>Company: {task.user?.companyName}</Typography>
+        )}
 
         {task.acceptedOfferId && (
           <Box
@@ -130,41 +151,88 @@ const TaskDetailsModal = ({ open, onClose, task }: any) => {
           </Box>
         )}
 
-        <List>
-          {task.progressLogs.map((log: any, index: number) => (
-            <ListItem key={index}>
-              <ListItemText primary={log.log.message} />
-            </ListItem>
-          ))}
-        </List>
-
         {task.offers?.length > 0 && (
-          <>
-            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-              {user?.role == UserRole.USER ? "Offers" : "Your Offer"}
-            </Typography>
+          <Accordion sx={{ mt: 2 }}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="offer-list-content"
+              id="offer-list-header"
+            >
+              <Typography>
+                {user?.role == UserRole.USER ? "Offers" : "Your Offer"}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <List>
+                {task.offers.map((offer: any) => (
+                  <ListItem
+                    key={offer.id}
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <ListItemText
+                      primary={`Provider: ${offer.provider.firstName} ${offer.provider.lastName}`}
+                      secondary={`Rate: ${offer.hourlyRate} ${offer.currency}, Hours: ${offer.expectedHours}`}
+                    />
+                    {user?.role === "USER" && !task.acceptedOfferId && (
+                      <Button
+                        variant="contained"
+                        onClick={() => handleAcceptOffer(offer.id)}
+                      >
+                        Accept
+                      </Button>
+                    )}
+                  </ListItem>
+                ))}
+              </List>
+            </AccordionDetails>
+          </Accordion>
+        )}
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="progress-logs-content"
+            id="progress-logs-header"
+          >
+            <Typography>Progress Logs</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
             <List>
-              {task.offers.map((offer: any) => (
-                <ListItem
-                  key={offer.id}
-                  sx={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <ListItemText
-                    primary={`Provider: ${offer.provider.firstName} ${offer.provider.lastName}`}
-                    secondary={`Rate: ${offer.hourlyRate} ${offer.currency}, Hours: ${offer.expectedHours}`}
-                  />
-                  {user?.role === "USER" && !task.acceptedOfferId && (
-                    <Button
-                      variant="contained"
-                      onClick={() => handleAcceptOffer(offer.id)}
-                    >
-                      Accept
-                    </Button>
-                  )}
-                </ListItem>
-              ))}
+              {task.progressLogs.map((log: any, index: number) => {
+                console.log("Progress Log:", log);
+                return (
+                  <ListItem key={index}>
+                    <ListItemText primary={log.log.description} />
+                  </ListItem>
+                );
+              })}
             </List>
-          </>
+          </AccordionDetails>
+        </Accordion>
+        {isProgressPostingAllowed && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              alignItems: "center",
+              mt: 2,
+            }}
+          >
+            <TextField
+              fullWidth
+              value={progressLog}
+              onChange={(e) => setProgressLog(e.target.value)}
+              placeholder="Add progress log"
+              variant="outlined"
+              sx={{ mr: { md: 2, xs: 0 }, mb: { xs: 2, md: 0 } }}
+            />
+            <Button
+              variant="contained"
+              onClick={handleAddProgressLog}
+              disabled={!progressLog.trim()}
+            >
+              Submit
+            </Button>
+          </Box>
         )}
       </Box>
     </Modal>

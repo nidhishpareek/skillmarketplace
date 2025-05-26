@@ -233,17 +233,16 @@ router.post(
       where: { id },
       include: {
         acceptedOffer: {
-          include: {
-            provider: true,
+          select: {
+            providerId: true,
           },
         },
       },
     });
 
-    if (!task || task.acceptedOffer?.provider?.id !== user.id) {
+    if (!task || task.acceptedOffer?.providerId !== user.id) {
       res.status(403).json({
-        error:
-          "You are not authorized to create a progress log for this task.",
+        error: "You are not authorized to create a progress log for this task.",
       });
       return;
     }

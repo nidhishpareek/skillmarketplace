@@ -42,6 +42,28 @@ export const useTasks = () => {
     }
   };
 
+  const addProgressLog = async (taskId: string, description: string) => {
+    try {
+      const response = await fetch(`/api/send/tasks/${taskId}/progressLog`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ description }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add progress log");
+      }
+
+      // Mutate the tasks API to refresh the data
+      mutate("/api/tasks");
+    } catch (error) {
+      console.error("Error adding progress log:", error);
+      throw error;
+    }
+  };
+
   return {
     tasks: data,
     isLoading,
@@ -49,5 +71,6 @@ export const useTasks = () => {
     updateTask,
     createOffer, // Add createOffer to the returned object
     acceptOffer, // Add acceptOffer to the returned object
+    addProgressLog,
   };
 };
