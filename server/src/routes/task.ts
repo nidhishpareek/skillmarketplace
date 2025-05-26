@@ -74,20 +74,6 @@ router.delete("/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-const providerPropertiesIncluded = {
-  provider: {
-    select: {
-      firstName: true,
-      lastName: true,
-      email: true,
-      mobileNumber: true,
-      companyName: true,
-      businessTaxNumber: true,
-      skills: true,
-    },
-  },
-};
-
 router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
   const { page = 1, pageSize = 10 } = req.query;
   const user = req.user;
@@ -100,9 +86,28 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
   const limit = Math.min(Number(pageSize), 100); // Max page size is 100
   const offset = (Number(page) - 1) * limit;
 
+  const providerPropertiesIncluded = {
+    include: {
+      provider: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+          mobileNumber: true,
+          companyName: true,
+          businessTaxNumber: true,
+          skills: true,
+        },
+      },
+    },
+    where: {
+      providerId: !isProvider ? undefined : user.id,
+    },
+  };
+
   try {
     const tasks = await prisma.task.findMany({
-      where: { userId: user.role === Role.USER ? undefined : user.id },
+      where: { userId: user.role === Role.USER ? user.id : undefined },
       skip: offset,
       take: limit,
       orderBy: { createdAt: "desc" },
@@ -119,19 +124,8 @@ router.get("/", requireAuth, async (req: AuthenticatedRequest, res) => {
           },
         },
         acceptedBy: true,
-        acceptedOffer: isProvider
-          ? {
-              include: { ...providerPropertiesIncluded },
-            }
-          : undefined,
-        offers: {
-          include: {
-            ...providerPropertiesIncluded,
-          },
-          where: {
-            providerId: !isProvider ? user.id : undefined,
-          },
-        },
+        acceptedOffer: isProvider ? providerPropertiesIncluded : undefined,
+        offers: providerPropertiesIncluded,
       },
     });
 

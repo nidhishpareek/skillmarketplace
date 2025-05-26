@@ -27,7 +27,7 @@ const LoginPage = () => {
     });
     const { callbackUrl } = parseQueryToStrings(router.query);
     if (success) {
-      router.push(decodeURIComponent(callbackUrl));
+      router.push(callbackUrl ? decodeURIComponent(callbackUrl) : "/");
     } else {
       toast.error("Login failed. Please check your credentials.");
     }

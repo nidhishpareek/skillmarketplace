@@ -29,15 +29,13 @@ import {
   UserType,
   UserRole,
 } from "../apiCalls/signup";
-import { useSearchParams } from "next/navigation";
 
-const SignupPage = () => {
+const SignupPage = ({ query }: { query: Record<string, string> }) => {
   const [step, setStep] = useState(1);
   const router = useRouter();
-  const params = useSearchParams();
-  const appendQuery = params ? `?${params}` : "";
+  const appendQuery = query ? `?${new URLSearchParams(query).toString()}` : "";
 
-  const { control, handleSubmit, watch, trigger } = useForm({
+  const { control, handleSubmit, trigger } = useForm({
     resolver: yupResolver(signupSchema),
     defaultValues: {
       type: UserType.INDIVIDUAL,
@@ -85,8 +83,6 @@ const SignupPage = () => {
 
   const handleBack = () => setStep(1);
 
-  const typeValue = watch("type"); // Use watch to observe the type field
-
   return (
     <>
       <Box
@@ -95,16 +91,22 @@ const SignupPage = () => {
         alignItems="center"
         justifyContent="center"
         minHeight="100vh"
-        sx={{ backgroundColor: "#f5f5f5", padding: 2 }}
+        style={{ backgroundColor: "#f5f5f5", padding: "16px" }}
       >
-        <Card sx={{ maxWidth: 800, width: "100%", boxShadow: 3 }}>
+        <Card
+          style={{
+            maxWidth: "800px",
+            width: "100%",
+            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+          }}
+        >
           <CardContent>
             <Typography variant="h4" gutterBottom align="center">
               Signup
             </Typography>
             {step === 1 && (
               <Box component="form">
-                <Box sx={{ marginBottom: 2 }}>
+                <Box style={{ marginBottom: "16px" }}>
                   <Typography variant="h6">Type</Typography>
                   <Controller
                     name="type"
@@ -124,7 +126,7 @@ const SignupPage = () => {
                   />
                 </Box>
 
-                <Box sx={{ marginBottom: 2 }}>
+                <Box style={{ marginBottom: "16px" }}>
                   <Typography variant="h6">Role</Typography>
                   <Controller
                     name="role"
@@ -225,6 +227,38 @@ const SignupPage = () => {
                   )}
                 />
 
+                <Controller
+                  name="companyName"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      label="Company Name"
+                      variant="outlined"
+                      fullWidth
+                      margin="normal"
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="businessTaxNumber"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      label="Business Tax Number"
+                      variant="outlined"
+                      fullWidth
+                      margin="normal"
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+
                 <Button
                   variant="contained"
                   color="primary"
@@ -237,7 +271,7 @@ const SignupPage = () => {
             )}
             {step === 2 && (
               <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-                <Box sx={{ marginTop: 4 }}>
+                <Box style={{ marginTop: "32px" }}>
                   <Typography variant="h6" gutterBottom>
                     Address
                   </Typography>
@@ -327,7 +361,7 @@ const SignupPage = () => {
                   color="primary"
                   fullWidth
                   type="submit"
-                  sx={{ marginBottom: 2 }} // Added margin for spacing
+                  style={{ marginBottom: "16px" }}
                 >
                   Submit
                 </Button>
@@ -341,7 +375,11 @@ const SignupPage = () => {
                 </Button>
               </Box>
             )}
-            <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
+            <Typography
+              variant="body2"
+              align="center"
+              style={{ marginTop: "16px" }}
+            >
               Already have an account?{" "}
               <a
                 href={`/login${appendQuery}`}
@@ -376,7 +414,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   }
-  return { props: {} };
+  return { props: { query } };
 };
 
 export default SignupPage;

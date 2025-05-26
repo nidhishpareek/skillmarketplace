@@ -41,6 +41,7 @@ const OfferModal = () => {
 
       await createOffer(selectedTask?.id, data); // Use createOffer to submit the offer
       toast.success("Offer submitted successfully!");
+      onOfferClose();
     } catch (error) {
       toast.error("Failed to submit offer.");
     }

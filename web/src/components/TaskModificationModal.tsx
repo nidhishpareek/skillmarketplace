@@ -68,6 +68,7 @@ const TaskModificationModal = () => {
       toast.error("Failed to save task.");
     }
   };
+
   return (
     <Modal
       open={modificationModalOpen}

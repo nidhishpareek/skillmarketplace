@@ -32,7 +32,7 @@ export const signupSchema = yup.object().shape({
     ),
   mobileNumber: yup
     .string()
-    .matches(/^\(\+\d{1,3}[- ]?)?\d{10}$/, "Invalid mobile number")
+    .matches(/^\(?[+]?\d{1,3}\)?[- ]?\d{7,15}$/, "Invalid mobile number")
     .required("Mobile number is required"),
   address: yup.object().shape({
     streetNumber: yup.string().required("Street number is required"),

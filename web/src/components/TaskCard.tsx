@@ -1,12 +1,13 @@
 import React from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { useTaskContext } from "@/context/TaskContext";
+import { UserRole, UserType } from "@/apiCalls/signup";
 
 const TaskCard = ({ task }: any) => {
   const { user, onViewDetails, onEdit, onOffer } = useTaskContext();
 
   const hasOffered = task.offers.some(
-    (offer: any) => offer.provider.id === user.id
+    (offer: any) => offer.providerId === user.id
   );
 
   return (
@@ -27,7 +28,7 @@ const TaskCard = ({ task }: any) => {
         <Button onClick={() => onViewDetails(task)} variant="outlined">
           View Details
         </Button>
-        {task.role === "PROVIDER" ? (
+        {user.role === UserRole.USER ? (
           <Button onClick={() => onEdit(task)} variant="contained">
             Edit
           </Button>

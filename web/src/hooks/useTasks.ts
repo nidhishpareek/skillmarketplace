@@ -32,11 +32,22 @@ export const useTasks = () => {
     }
   };
 
+  const acceptOffer = async (taskId: string, offerId: string) => {
+    try {
+      await axios.post(`/api/send/tasks/${taskId}/offer/${offerId}/accept`);
+      mutate("/api/send/tasks"); // Revalidate the tasks data
+    } catch (error) {
+      console.error("Error in acceptOffer:", error);
+      throw error;
+    }
+  };
+
   return {
     tasks: data,
     isLoading,
     error,
     updateTask,
     createOffer, // Add createOffer to the returned object
+    acceptOffer, // Add acceptOffer to the returned object
   };
 };

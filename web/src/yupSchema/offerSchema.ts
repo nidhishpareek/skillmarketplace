@@ -2,8 +2,9 @@ import * as yup from "yup";
 
 export enum Currency {
   USD = "USD",
-  EUR = "EUR",
+  AUD = "AUD",
   INR = "INR",
+  SGD = "SGD",
 }
 
 export const CurrencyOptions = Object.values(Currency);

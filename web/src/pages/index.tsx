@@ -8,6 +8,8 @@ import TaskDetailsModal from "@/components/TaskDetailsModal";
 import TaskModificationModal from "@/components/TaskModificationModal";
 import OfferModal from "@/components/OfferModal";
 import { withTaskProvider } from "@/hoc/WithTaskProvider";
+import { useUser } from "@/context/UserContext";
+import { UserRole } from "@/apiCalls/signup";
 
 function Home() {
   const {
@@ -23,11 +25,11 @@ function Home() {
     selectedTask,
     onOffer,
   } = useTaskContext();
-
+  const { user } = useUser();
   console.log(modificationModalOpen, selectedTask);
 
   return (
-    <TaskProvider>
+    <>
       <Header />
       {isLoading ? (
         <div>Loading...</div>
@@ -36,15 +38,17 @@ function Home() {
       ) : (
         <Container sx={{ padding: "2rem" }}>
           <main>
-            <Box display="flex" justifyContent="flex-start" p={2}>
-              <Button
-                variant="contained"
-                onClick={onCreateTask}
-                sx={{ display: "block" }}
-              >
-                Create Task
-              </Button>
-            </Box>
+            {user?.role === UserRole.USER && (
+              <Box display="flex" justifyContent="flex-start" p={2}>
+                <Button
+                  variant="contained"
+                  onClick={onCreateTask}
+                  sx={{ display: "block" }}
+                >
+                  Create Task
+                </Button>
+              </Box>
+            )}
             <TaskListing />
             <TaskDetailsModal
               open={detailsModalOpen}
@@ -56,7 +60,7 @@ function Home() {
           </main>
         </Container>
       )}
-    </TaskProvider>
+    </>
   );
 }
 

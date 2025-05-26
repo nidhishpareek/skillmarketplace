@@ -2,10 +2,29 @@ import { UserRole } from "@/apiCalls/signup";
 import { useUser } from "@/context/UserContext";
 import { Box, Button } from "@mui/material";
 import { useRouter } from "next/router";
+import { toast } from "react-toastify";
 
 export const Header = () => {
   const { user } = useUser();
   const isProvider = user?.role !== UserRole.PROVIDER;
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        toast.success("Logged out successfully!");
+        window.location.href = "/login"; // Redirect to login page
+      } else {
+        toast.error("Failed to log out. Please try again.");
+      }
+    } catch (error) {
+      toast.error("An error occurred during logout.");
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -25,6 +44,9 @@ export const Header = () => {
           Skills
         </Button>
       )}
+      <Button onClick={handleLogout} variant="text" color="secondary">
+        Logout
+      </Button>
     </Box>
   );
 };
