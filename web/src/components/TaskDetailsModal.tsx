@@ -41,14 +41,27 @@ const TaskDetailsModal = ({ open, onClose, task }: any) => {
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: 600,
+          maxHeight: "90vh", // Limit height to 90% of the viewport
+          overflowY: "auto", // Enable vertical scrolling
           bgcolor: "background.paper",
           boxShadow: 24,
           p: 4,
         }}
       >
-        <Typography variant="h6" gutterBottom>
-          Task Details
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Task Details
+          </Typography>
+          <Button onClick={onClose} variant="outlined">
+            Close
+          </Button>
+        </Box>
         <Typography>Name: {task.name}</Typography>
         <Typography>Category: {task.category}</Typography>
         <Typography>Description: {task.description}</Typography>
@@ -57,6 +70,66 @@ const TaskDetailsModal = ({ open, onClose, task }: any) => {
         </Typography>
         <Typography>Company: {task.user?.companyName}</Typography>
         <Typography>Progress Logs:</Typography>
+
+        {task.acceptedOfferId && (
+          <Box
+            sx={{ mt: 2, p: 2, border: "1px solid #ccc", borderRadius: "8px" }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Accepted Offer Details
+            </Typography>
+            {task.offers
+              .filter((offer: any) => offer.id === task.acceptedOfferId)
+              .map((acceptedOffer: any) => (
+                <Box key={acceptedOffer.id}>
+                  <Typography>
+                    <strong>Created At:</strong>{" "}
+                    {new Date(acceptedOffer.createdAt).toLocaleString()}
+                  </Typography>
+                  <Typography>
+                    <strong>Currency:</strong> {acceptedOffer.currency}
+                  </Typography>
+                  <Typography>
+                    <strong>Expected Hours:</strong>{" "}
+                    {acceptedOffer.expectedHours}
+                  </Typography>
+                  <Typography>
+                    <strong>Hourly Rate:</strong> {acceptedOffer.hourlyRate}
+                  </Typography>
+                  <Typography>
+                    <strong>Status:</strong> {acceptedOffer.status}
+                  </Typography>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                    Provider Details
+                  </Typography>
+                  <Typography>
+                    <strong>First Name:</strong>{" "}
+                    {acceptedOffer.provider.firstName}
+                  </Typography>
+                  <Typography>
+                    <strong>Last Name:</strong>{" "}
+                    {acceptedOffer.provider.lastName}
+                  </Typography>
+                  <Typography>
+                    <strong>Email:</strong> {acceptedOffer.provider.email}
+                  </Typography>
+                  <Typography>
+                    <strong>Mobile Number:</strong>{" "}
+                    {acceptedOffer.provider.mobileNumber}
+                  </Typography>
+                  <Typography>
+                    <strong>Company Name:</strong>{" "}
+                    {acceptedOffer.provider.companyName || "N/A"}
+                  </Typography>
+                  <Typography>
+                    <strong>Business Tax Number:</strong>{" "}
+                    {acceptedOffer.provider.businessTaxNumber || "N/A"}
+                  </Typography>
+                </Box>
+              ))}
+          </Box>
+        )}
+
         <List>
           {task.progressLogs.map((log: any, index: number) => (
             <ListItem key={index}>
@@ -93,10 +166,6 @@ const TaskDetailsModal = ({ open, onClose, task }: any) => {
             </List>
           </>
         )}
-
-        <Button onClick={onClose} variant="outlined" sx={{ mt: 2 }}>
-          Close
-        </Button>
       </Box>
     </Modal>
   );
