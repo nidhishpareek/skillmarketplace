@@ -77,6 +77,8 @@ const SignupPage = ({ query }: { query: Record<string, string> }) => {
       "email",
       "password",
       "mobileNumber",
+      "companyName",
+      "businessTaxNumber",
     ]);
     if (isValid) setStep(2);
   };
